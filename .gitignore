@@ -56,3 +56,4 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+src/main/java/net/petercashel/nettyCore/ssl/SSLCERT_.p12

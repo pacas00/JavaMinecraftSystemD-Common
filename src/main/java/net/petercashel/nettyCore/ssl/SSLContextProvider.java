@@ -41,69 +41,64 @@ import io.netty.util.internal.logging.Log4JLoggerFactory;
 
 
 public class SSLContextProvider {
-	
+
 	public static boolean useExternalSSL = false;
 	public static String pathToSSLCert = "";
 	public static String SSLCertSecret = "secret";
-	
+
 	private static byte[] pkcs12Base64 = null; //
-    private static SSLContext sslContext = null;
-    public static boolean selfSigned = false;
-    
-    public SSLContextProvider() {
-    		SetupSSL();
+	private static SSLContext sslContext = null;
+	public static boolean selfSigned = false;
+
+	public SSLContextProvider() {
+		SetupSSL();
 	}
-    
-    public SSLContextProvider(String path, String secret) {
-    	useExternalSSL = true;
-    	pathToSSLCert = path;
-    	SSLCertSecret = secret;
-    	SetupSSL();
-    	
+
+	public static void SetupSSL() {
+
+		if (useExternalSSL) {
+			try {
+				try {
+					pkcs12Base64 = Files.readAllBytes(FileSystems.getDefault().getPath(pathToSSLCert));
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			} catch (NullPointerException e) {
+				selfSigned = true;
+			}
+		} else {
+			InputStream in = SSLContextProvider.class.getClass().getResourceAsStream("/net/petercashel/nettyCore/ssl/SSLCERT.p12");
+			try {
+				int buffersize = 0;
+				try {
+					buffersize = in.available();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+					buffersize = 16384;
+				}
+				byte[] buffer = new byte[buffersize];
+				try {
+					if ( in.read(buffer) == -1 ) {
+					}        
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} finally { 
+					try {
+						if ( in != null ) 
+							in.close();
+					} catch ( IOException e) {
+					}
+
+				}
+				pkcs12Base64 = buffer;
+			} catch (NullPointerException e) {
+				selfSigned = true;
+			}
+		}
 	}
-    
-    public static void SetupSSL() {
-    	
-    	if (useExternalSSL) {
-    		try {
-				pkcs12Base64 = Files.readAllBytes(FileSystems.getDefault().getPath(pathToSSLCert));
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-    		
-    	} else {
-    		InputStream in = SSLContextProvider.class.getClass().getResourceAsStream("/net/petercashel/nettyCore/ssl/SSLCERT.p12");
-    		try {
-    		int buffersize = 0;
-    		try {
-				buffersize = in.available();
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-				buffersize = 16384;
-			}
-    		byte[] buffer = new byte[buffersize];
-    		try {
-    	        if ( in.read(buffer) == -1 ) {
-    	        }        
-    	    } catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} finally { 
-    	        try {
-    	             if ( in != null ) 
-    	                  in.close();
-    	        } catch ( IOException e) {
-    	        }
-    	        
-    	    }
-    		pkcs12Base64 = buffer;
-    		} catch (NullPointerException e) {
-        		selfSigned = true;
-        	}
-    	}
-    }
 	public static SslContext getSelfClient() {
 		SslContext sslCtx = null;
 		try {
@@ -114,8 +109,8 @@ public class SSLContextProvider {
 		}
 		return sslCtx;
 	}
-    
-    
+
+
 	public static SslContext getSelfServer() {
 		SelfSignedCertificate ssc = null;
 		try {
@@ -124,42 +119,42 @@ public class SSLContextProvider {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        SslContext sslCtx = null;
+		SslContext sslCtx = null;
 		try {
 			sslCtx = SslContext.newServerContext(ssc.certificate(), ssc.privateKey());
 		} catch (SSLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        return sslCtx;
+		return sslCtx;
 	}
-    
+
 	public static SSLContext get() {
 		if(sslContext==null) {
-            synchronized (SSLContextProvider.class) {
-                if(sslContext==null) {
-                    try {
-                        sslContext = SSLContext.getInstance("TLSv1.2");
-                        KeyStore ks = KeyStore.getInstance("PKCS12");
-                        ks.load(new ByteArrayInputStream((pkcs12Base64)), SSLCertSecret.toCharArray());
-                        KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-                        kmf.init(ks, SSLCertSecret.toCharArray());
-                        
-                        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("PKIX");
-                        trustManagerFactory.init(ks);
+			synchronized (SSLContextProvider.class) {
+				if(sslContext==null) {
+					try {
+						sslContext = SSLContext.getInstance("TLSv1.2");
+						KeyStore ks = KeyStore.getInstance("PKCS12");
+						ks.load(new ByteArrayInputStream((pkcs12Base64)), SSLCertSecret.toCharArray());
+						KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+						kmf.init(ks, SSLCertSecret.toCharArray());
 
-                        //Random r = new Random();
-                        //int iseed = r.nextInt();
-                        //while (iseed < 0) iseed = r.nextInt();
-                        //byte[] seed = r.generateSeed(iseed);
-                        SecureRandom sr = new SecureRandom();
-                        sslContext.init(kmf.getKeyManagers(), trustManagerFactory.getTrustManagers(), sr);
-                    } catch (Exception e) {
-                    	e.printStackTrace();
-                    }
-                }
-            }
-        }
-        return sslContext;
-    }
+						TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("PKIX");
+						trustManagerFactory.init(ks);
+
+						//Random r = new Random();
+						//int iseed = r.nextInt();
+						//while (iseed < 0) iseed = r.nextInt();
+						//byte[] seed = r.generateSeed(iseed);
+						SecureRandom sr = new SecureRandom();
+						sslContext.init(kmf.getKeyManagers(), trustManagerFactory.getTrustManagers(), sr);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+		return sslContext;
+	}
 }
