@@ -85,9 +85,7 @@ public class clientCoreUDS {
 			System.out.println("Client Core Connected!");
 			connection = f.channel();
 			connClosed = false;
-			// Initiate the Ping->Pong->PingPong Packet test.
-			PacketRegistry.pack(new PingPacket()).sendPacket(connection.pipeline().context("InboundOutboundClientHandler"));
-
+			
 			// Wait until the connection is closed.
 			f.channel().closeFuture().sync();
 		} finally {
