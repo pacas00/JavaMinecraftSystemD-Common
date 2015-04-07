@@ -3,6 +3,7 @@ bin/
 target/
 .settings/
 .project
+src/main/java/net/petercashel/nettyCore/ssl/SSLCERT.p12
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
