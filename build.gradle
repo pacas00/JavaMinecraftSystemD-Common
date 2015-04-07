@@ -5,18 +5,19 @@ buildscript {
             name = "sonatype"
             url = "https://oss.sonatype.org/content/repositories/snapshots/"
         }
+		maven {
+            name = "HTB3"
+            url = "http://htb2.petercashel.net:81"
+        }
     }
-}
-
-repositories {
 }
 
 apply plugin: 'java'
 apply plugin: 'maven'
 
-group = 'gradle'
+group = 'net.petercashel.JMSDd'
 version = '0.0.1-SNAPSHOT'
-archivesBaseName = 'net.petercashel.JMSDd'
+archivesBaseName = 'JMSDd-Common'
 buildDir = 'target'
 
 
@@ -27,8 +28,47 @@ dependencies {
 
 uploadArchives {
     repositories {
-        mavenDeployer {
-            repository(url: uri("pomRepo"))
+		mavenDeployer {
+            repository(url: 'file:///home/maven/public')
+			// This is just the pom data for the maven repo
+                pom {
+                    groupId = project.group
+                    version = project.version
+                    artifactId = project.archivesBaseName
+                    project {
+                        name project.archivesBaseName
+                        packaging 'jar'
+                        description 'JavaMinecraftSystemD-Common'
+                        url 'https://github.com/pacas00/JavaMinecraftSystemD-Common'
+
+                        scm {
+                            url 'https://github.com/pacas00/JavaMinecraftSystemD-Common'
+                            connection 'scm:git:git://github.com/pacas00/JavaMinecraftSystemD-Common.git'
+                            developerConnection 'scm:git:git@github.com:pacas00/JavaMinecraftSystemD-Common.git'
+                        }
+
+                        issueManagement {
+                            system 'github'
+                            url 'https://github.com/pacas00/JavaMinecraftSystemD-Common/issues'
+                        }
+
+                        licenses {
+                            license {
+                                name 'Creative Commons Attribution-NoDerivatives 4.0 International (CC BY-ND 4.0)'
+                                url 'http://creativecommons.org/licenses/by-nd/4.0/'
+                                distribution 'repo'
+                            }
+                        }
+
+                        developers {
+                            developer {
+                                id 'pacas00'
+                                name 'Peter Cashel'
+                                roles { role 'developer' }
+                            }
+                        }
+                    }
+                }
         }
     }
 }
