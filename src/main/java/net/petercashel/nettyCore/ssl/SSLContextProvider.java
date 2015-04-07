@@ -22,16 +22,21 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.security.KeyStore;
 import java.security.SecureRandom;
+import java.security.cert.CertificateException;
 import java.util.Random;
 import java.util.logging.Logger;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManagerFactory;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.base64.Base64;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.netty.util.internal.logging.Log4JLoggerFactory;
 
 
@@ -43,9 +48,10 @@ public class SSLContextProvider {
 	
 	private static byte[] pkcs12Base64 = null; //
     private static SSLContext sslContext = null;
+    public static boolean selfSigned = false;
     
     public SSLContextProvider() {
-    	SetupSSL();
+    		SetupSSL();
 	}
     
     public SSLContextProvider(String path, String secret) {
@@ -53,6 +59,7 @@ public class SSLContextProvider {
     	pathToSSLCert = path;
     	SSLCertSecret = secret;
     	SetupSSL();
+    	
 	}
     
     public static void SetupSSL() {
@@ -67,7 +74,7 @@ public class SSLContextProvider {
     		
     	} else {
     		InputStream in = SSLContextProvider.class.getClass().getResourceAsStream("/net/petercashel/nettyCore/ssl/SSLCERT.p12");
-
+    		try {
     		int buffersize = 0;
     		try {
 				buffersize = in.available();
@@ -92,13 +99,43 @@ public class SSLContextProvider {
     	        
     	    }
     		pkcs12Base64 = buffer;
-    		
+    		} catch (NullPointerException e) {
+        		selfSigned = true;
+        	}
     	}
     }
-	
-	
+	public static SslContext getSelfClient() {
+		SslContext sslCtx = null;
+		try {
+			sslCtx = SslContext.newClientContext(InsecureTrustManagerFactory.INSTANCE);
+		} catch (SSLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return sslCtx;
+	}
+    
+    
+	public static SslContext getSelfServer() {
+		SelfSignedCertificate ssc = null;
+		try {
+			ssc = new SelfSignedCertificate();
+		} catch (CertificateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        SslContext sslCtx = null;
+		try {
+			sslCtx = SslContext.newServerContext(ssc.certificate(), ssc.privateKey());
+		} catch (SSLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        return sslCtx;
+	}
+    
 	public static SSLContext get() {
-        if(sslContext==null) {
+		if(sslContext==null) {
             synchronized (SSLContextProvider.class) {
                 if(sslContext==null) {
                     try {

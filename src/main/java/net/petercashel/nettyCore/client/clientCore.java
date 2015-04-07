@@ -79,7 +79,8 @@ public class clientCore {
 				protected void initChannel(SocketChannel ch) throws Exception {
 					ChannelPipeline p = ch.pipeline();
 					p.addLast("readTimeoutHandler", new ReadTimeoutHandler(300));
-					if (UseSSL) p.addLast("ssl", getClientSSLHandler(addr, port));
+					if (UseSSL && !SSLContextProvider.selfSigned) p.addLast("ssl", getClientSSLHandler(addr, port));
+					if (UseSSL && SSLContextProvider.selfSigned) p.addLast("ssl", SSLContextProvider.getSelfClient().newHandler(ch.alloc(),addr, port));
 					p.addLast("InboundOutboundClientHandler", new ClientConnectionHander());
 				}
 			});
