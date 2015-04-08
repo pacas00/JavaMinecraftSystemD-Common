@@ -15,34 +15,71 @@
  *******************************************************************************/
 package net.petercashel.nettyCore.common.packets;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
+
+import net.petercashel.jmsDd.auth.interfaces.IAuthDataSystem;
 import net.petercashel.nettyCore.common.packetCore.IPacketBase;
 import net.petercashel.nettyCore.common.packetCore.Packet;
 import net.petercashel.nettyCore.common.packetCore.PacketBase;
+import net.petercashel.nettyCore.server.serverCore;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 
 public class PingPongPacket extends PacketBase implements IPacketBase {
-	public PingPongPacket() {
+	//ACK
+	public PingPongPacket() { // Client -> Server
+	}
+	
+	public PingPongPacket(String TokSalt) { // Client -> Server
+		tokenWithSalt = TokSalt;
 	}
 
 	public static int packetID = 2;
+	public String tokenWithSalt = "";
 	
 	@Override
 	public void pack() {
-		this.setPacket(this.getPacket());
-		
+		this.setPacket(this.getBlankPacket());
+		byte[] b = tokenWithSalt.getBytes(StandardCharsets.US_ASCII);
+		this.packet.writeInt(tokenWithSalt.length());
+		this.packet.writeBytes(b);
 	}
 
 	@Override
 	public void unpack() {
-		// TODO Auto-generated method stub
-		
+		int i = this.packet.readInt();
+		tokenWithSalt = new String(this.packet.readBytes(i).array(), StandardCharsets.US_ASCII);		
 	}
 
 	@Override
 	public void execute(ChannelHandlerContext ctx) {
-		System.out.println("PINGPONG!");
+		if (tokenWithSalt == null) {ctx.close();  System.out.println("Client " + ctx.channel().remoteAddress().toString() + " failed to authenticate."); return;}
+		if (tokenWithSalt.isEmpty()) {ctx.close();  System.out.println("Client " + ctx.channel().remoteAddress().toString() + " failed to authenticate."); return;}
+		if (tokenWithSalt.equalsIgnoreCase("")) {ctx.close();  System.out.println("Client " + ctx.channel().remoteAddress().toString() + " failed to authenticate."); return;}
+		IAuthDataSystem auth = null;
+		try {
+			Class cls = Class.forName("net.petercashel.jmsDd.auth.AuthSystem");
+			Field f = cls.getField("backend");
+			auth = (IAuthDataSystem) f.get(null);
+		} catch (Exception e) {
+			e.printStackTrace();
+			ctx.close();  System.out.println("Client " + ctx.channel().remoteAddress().toString() + " failed to authenticate."); return;
+		}
+		String Username = serverCore.AuthTmpUserMap.get(ctx.channel().remoteAddress().toString());
+		if (!(auth.GetSaltedToken(Username).equalsIgnoreCase(tokenWithSalt))) {ctx.close();  System.out.println("Client " + ctx.channel().remoteAddress().toString() + " failed to authenticate."); return;}
+		
+		System.out.println("Client " + ctx.channel().remoteAddress().toString() + " authenticated successfully.");
+		System.out.println("Sending history to " + ctx.channel().remoteAddress().toString());
+		try {
+			Class cls = Class.forName("net.petercashel.jmsDd.command.commandServer");
+			Method m = cls.getMethod("sendHistory", ChannelHandlerContext.class);
+			m.invoke(null, ctx);			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		
 	}
 
@@ -52,12 +89,16 @@ public class PingPongPacket extends PacketBase implements IPacketBase {
 		return packetID;
 	}
 
-	@Override
-	public ByteBuf getPacket() {
+	public ByteBuf getBlankPacket() {
 		// TODO Auto-generated method stub
 		ByteBuf b = Unpooled.buffer(Packet.packetBufSize).writeZero(Packet.packetBufSize);
 		b.setIndex(0, 0);
 		return b;
+	}
+	
+	@Override
+	public ByteBuf getPacket() {
+		return this.packet;
 	}
 
 	@Override

@@ -15,50 +15,44 @@
  *******************************************************************************/
 package net.petercashel.nettyCore.common.packets;
 
-import java.nio.charset.StandardCharsets;
+import java.lang.reflect.Method;
 
-import net.petercashel.nettyCore.client.clientCore;
-import net.petercashel.nettyCore.common.PacketRegistry;
 import net.petercashel.nettyCore.common.packetCore.IPacketBase;
 import net.petercashel.nettyCore.common.packetCore.Packet;
 import net.petercashel.nettyCore.common.packetCore.PacketBase;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 
-public class PongPacket extends PacketBase implements IPacketBase {
-	//SYN-ACK
-	public PongPacket() { // Server -> Client
-	}
-	public PongPacket(String Tok) {
-		tokenSalt = Tok;
+public class GetHistoryPacket extends PacketBase implements IPacketBase {
+	public GetHistoryPacket() {
 	}
 
-	public static int packetID = 1;
-	public String tokenSalt = "";
+	public static int packetID = 30;
 	
 	@Override
 	public void pack() {
-		this.setPacket(this.getBlankPacket());
-		byte[] b = tokenSalt.getBytes(StandardCharsets.US_ASCII);
-		this.packet.writeInt(tokenSalt.length());
-		this.packet.writeBytes(b);
+		this.setPacket(this.getPacket());
+		
 	}
 
 	@Override
 	public void unpack() {
-		int i = this.packet.readInt();
-		tokenSalt = new String(this.packet.readBytes(i).array(), StandardCharsets.US_ASCII);
+		// TODO Auto-generated method stub
+		
 	}
 
 	@Override
 	public void execute(ChannelHandlerContext ctx) {
-		if (tokenSalt == null) {ctx.close();  System.out.println("Client " + ctx.channel().remoteAddress().toString() + " failed to authenticate due to server error."); return;}
-		if (tokenSalt.isEmpty()) {ctx.close();  System.out.println("Client " + ctx.channel().remoteAddress().toString() + " failed to authenticate due to server error."); return;}
-		if (tokenSalt.equalsIgnoreCase("")) {ctx.close();  System.out.println("Client " + ctx.channel().remoteAddress().toString() + " failed to authenticate due to server error."); return;}
-		System.out.println("Sending Salted Token");
-		(PacketRegistry.pack(new PingPongPacket(clientCore.GeneratedSaltedToken(clientCore.token, tokenSalt)))).sendPacket(ctx);
+		System.out.println("Sending history to " + ctx.channel().remoteAddress().toString());
+		try {
+			Class cls = Class.forName("net.petercashel.jmsDd.command.commandServer");
+			Method m = cls.getMethod("sendHistory", ChannelHandlerContext.class);
+			m.invoke(null, ctx);			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 	@Override
@@ -67,16 +61,12 @@ public class PongPacket extends PacketBase implements IPacketBase {
 		return packetID;
 	}
 
-	public ByteBuf getBlankPacket() {
+	@Override
+	public ByteBuf getPacket() {
 		// TODO Auto-generated method stub
 		ByteBuf b = Unpooled.buffer(Packet.packetBufSize).writeZero(Packet.packetBufSize);
 		b.setIndex(0, 0);
 		return b;
-	}
-	
-	@Override
-	public ByteBuf getPacket() {
-		return this.packet;
 	}
 
 	@Override

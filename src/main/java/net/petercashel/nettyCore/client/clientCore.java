@@ -17,6 +17,9 @@ package net.petercashel.nettyCore.client;
 
 import java.net.InetSocketAddress;
 import java.nio.channels.Channels;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -42,6 +45,9 @@ import io.netty.handler.timeout.ReadTimeoutHandler;
 
 public class clientCore {
 	public static boolean UseSSL = true;
+	public static boolean DoAuth = true;
+	public static String username = "";
+	public static String token = "";
 	static Channel connection;
 	static final int side = 1;
 	static String _host = "";
@@ -68,7 +74,7 @@ public class clientCore {
 		PacketRegistry.setupRegistry();
 		PacketRegistry.Side = side;
 		if (UseSSL) SSLContextProvider.SetupSSL();
-		
+
 		group = new NioEventLoopGroup();
 		try {
 			Bootstrap b = new Bootstrap();
@@ -106,25 +112,47 @@ public class clientCore {
 			connClosed = true;
 		}
 	}
-	
+
 	public static Channel getChannel() throws ConnectionShuttingDown, NullPointerException {
 		if (shuttingdown) throw new ConnectionShuttingDown();
 		return connection;
 	}
-	
+
 	public static SslHandler getClientSSLHandler(final String addr, final int port) {
 		final SSLEngine sslEngine = SSLContextProvider.get().createSSLEngine(addr, port);
 		sslEngine.setUseClientMode(true);
 		final SslHandler sslHandler = new SslHandler(sslEngine);
 		return sslHandler;
 	}
+	
+	public static String GeneratedSaltedToken(String TOKEN, String TokenSalt) {
+		MessageDigest md = null;
+		try {
+			md = MessageDigest.getInstance("SHA-512");
+		} catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+		String text = TOKEN + TokenSalt;
+
+		md.update(text.getBytes(StandardCharsets.UTF_8));
+		byte[] hash = md.digest();
+		StringBuffer hexString = new StringBuffer();
+
+        for (int i = 0; i < hash.length; i++) {
+            String hex = Integer.toHexString(0xff & hash[i]);
+            if(hex.length() == 1) hexString.append('0');
+            hexString.append(hex);
+        }
+        
+		return hexString.toString();
+	}
 
 	public static void shutdown() throws InterruptedException, ConnectionShuttingDown {
 		try {
 			getChannel().close().await(20, TimeUnit.SECONDS);
+			group.shutdownGracefully().await(30, TimeUnit.SECONDS);
+			PacketRegistry.shutdown();
 		} catch (NullPointerException e) {
-		}
-		group.shutdownGracefully().await(30, TimeUnit.SECONDS);
-		PacketRegistry.shutdown();		
+		}		
 	}
 }

@@ -21,6 +21,7 @@ import java.util.HashMap;
 
 import javax.net.ssl.SSLEngine;
 
+import net.petercashel.jmsDd.auth.interfaces.IAuthDataSystem;
 import net.petercashel.nettyCore.common.PacketRegistry;
 import net.petercashel.nettyCore.common.packets.PongPacket;
 import net.petercashel.nettyCore.ssl.SSLContextProvider;
@@ -36,12 +37,13 @@ import io.netty.handler.timeout.ReadTimeoutHandler;
 
 public class serverCore {
 
+	public static boolean DoAuth = true;
 	public static boolean UseSSL = true;
 	static final int side = 0;
 	public static HashMap<SocketAddress,Channel> clientConnectionMap;
+	public static HashMap<String,String> AuthTmpUserMap;
 	private static NioEventLoopGroup bossGroup;
 	private static NioEventLoopGroup workerGroup;
-
 	// http://netty.io/wiki/user-guide-for-4.x.html
 	/**
 	 * Initializes the Server listerning socket 
@@ -51,6 +53,7 @@ public class serverCore {
 	 */
 	public static void initializeServer(int port) throws Exception {
 		clientConnectionMap = new HashMap<SocketAddress,Channel>();
+		AuthTmpUserMap = new HashMap<String,String>();
 		PacketRegistry.setupRegistry();
 		PacketRegistry.Side = side;
 		if (UseSSL) SSLContextProvider.SetupSSL();
@@ -102,17 +105,20 @@ public class serverCore {
 	}
 
 	public static void shutdown() {
-		for (Channel c : clientConnectionMap.values()) {
-			try {
-				c.close().sync();
-			} catch (InterruptedException e) {
+		try {
+			for (Channel c : clientConnectionMap.values()) {
+				try {
+					c.close().sync();
+				} catch (InterruptedException e) {
+				}
+				c = null;
 			}
-			c = null;
+			workerGroup.shutdownGracefully();
+			bossGroup.shutdownGracefully();
+			clientConnectionMap.clear();
+			clientConnectionMap = null;
+			PacketRegistry.shutdown();
+		} catch (NullPointerException e) {
 		}
-		workerGroup.shutdownGracefully();
-		bossGroup.shutdownGracefully();
-		clientConnectionMap.clear();
-		clientConnectionMap = null;
-		PacketRegistry.shutdown();
 	}
 }

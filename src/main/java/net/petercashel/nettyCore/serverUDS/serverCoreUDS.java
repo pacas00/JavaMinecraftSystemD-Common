@@ -46,7 +46,7 @@ public class serverCoreUDS {
 	public static void initializeServer(Path socket) throws Exception {
 		initializeServer(socket.toFile());
 	}
-	
+
 	public static void initializeServer(File socket) throws Exception {
 		PacketRegistry.setupRegistry();
 		PacketRegistry.Side = side;
@@ -68,7 +68,7 @@ public class serverCoreUDS {
 							});
 				}
 			}.newInstance();
-			
+
 			b.option(ChannelOption.SO_BACKLOG, 128); // (6)
 
 			// Bind and start to accept incoming connections.
@@ -93,12 +93,16 @@ public class serverCoreUDS {
 	}
 
 	public static DomainSocketAddress newSocketAddress(File socket) {
-			return new DomainSocketAddress(socket);
+		socket.delete();
+		return new DomainSocketAddress(socket);
 	}
 
 	public static void shutdown() {
-		workerGroup.shutdownGracefully();
-		bossGroup.shutdownGracefully();
-		PacketRegistry.shutdown();
+		try {
+			workerGroup.shutdownGracefully();
+			bossGroup.shutdownGracefully();
+			PacketRegistry.shutdown();
+		} catch (NullPointerException e) {
+		}
 	}
 }

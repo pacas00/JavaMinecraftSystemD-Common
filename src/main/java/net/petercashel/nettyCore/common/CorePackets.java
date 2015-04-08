@@ -16,6 +16,7 @@
 package net.petercashel.nettyCore.common;
 
 import net.petercashel.nettyCore.common.packets.CMDInPacket;
+import net.petercashel.nettyCore.common.packets.GetHistoryPacket;
 import net.petercashel.nettyCore.common.packets.IOInPacket;
 import net.petercashel.nettyCore.common.packets.IOOutPacket;
 import net.petercashel.nettyCore.common.packets.PingPacket;
@@ -37,7 +38,10 @@ public class CorePackets {
 		
 		PacketRegistry.registerPacketWithID(IOOutPacket.packetID, IOOutPacket.class);
 		PacketRegistry.registerPacketWithID(IOInPacket.packetID, IOInPacket.class);
+		
 		PacketRegistry.registerPacketWithID(CMDInPacket.packetID, CMDInPacket.class);
+		
+		PacketRegistry.registerPacketWithID(GetHistoryPacket.packetID, GetHistoryPacket.class);
 		
 	}
 }

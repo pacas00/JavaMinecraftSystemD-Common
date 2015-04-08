@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 
 import net.petercashel.nettyCore.common.PacketRegistry;
 import net.petercashel.nettyCore.common.exceptions.ConnectionShuttingDown;
+import net.petercashel.nettyCore.common.packets.GetHistoryPacket;
 import net.petercashel.nettyCore.common.packets.PingPacket;
 import io.netty.bootstrap.AbstractBootstrap;
 import io.netty.bootstrap.Bootstrap;
@@ -49,11 +50,11 @@ public class clientCoreUDS {
 	 * @param port - int Port number to connect to
 	 * @throws Exception
 	 */
-	
+
 	public static void initializeConnection (Path socket) throws Exception {
 		initializeConnection(socket.toFile());
 	}
-	
+
 	public static void initializeConnection (File socket) throws Exception {
 		PacketRegistry.setupRegistry();
 		PacketRegistry.Side = side;
@@ -73,7 +74,7 @@ public class clientCoreUDS {
 							});
 				}
 			}.newInstance();
-			
+
 
 			// Make the connection attempt.
 			ChannelFuture f = b.connect(newSocketAddress(socket)).sync();
@@ -86,6 +87,9 @@ public class clientCoreUDS {
 			connection = f.channel();
 			connClosed = false;
 			
+			// Send GetHistoryPacket
+			PacketRegistry.pack(new GetHistoryPacket()).sendPacket(connection.pipeline().context("InboundOutboundClientHandler"));
+
 			// Wait until the connection is closed.
 			f.channel().closeFuture().sync();
 		} finally {
@@ -105,16 +109,17 @@ public class clientCoreUDS {
 	}
 
 	public static DomainSocketAddress newSocketAddress(File socket) {
+		socket.delete();
 		return new DomainSocketAddress(socket);
 	}
 
-	
+
 	public static void shutdown() throws InterruptedException, ConnectionShuttingDown {
 		try {
 			getChannel().close().await(20, TimeUnit.SECONDS);
+			group.shutdownGracefully().await(30, TimeUnit.SECONDS);
+			PacketRegistry.shutdown();
 		} catch (NullPointerException e) {
-		}
-		group.shutdownGracefully().await(30, TimeUnit.SECONDS);
-		PacketRegistry.shutdown();		
+		}	
 	}
 }
