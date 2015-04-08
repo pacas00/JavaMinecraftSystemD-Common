@@ -65,9 +65,9 @@ public class clientCoreUDS {
 				@Override
 				public Bootstrap newInstance() {
 					return new Bootstrap().group(group).channel(EpollDomainSocketChannel.class)
-							.handler(new ChannelInitializer<SocketChannel>() {
+							.handler(new ChannelInitializer<EpollDomainSocketChannel>() {
 								@Override
-								protected void initChannel(SocketChannel ch) throws Exception {
+								protected void initChannel(EpollDomainSocketChannel ch) throws Exception {
 									ChannelPipeline p = ch.pipeline();
 									p.addLast("InboundOutboundClientHandler", new ClientUDSConnectionHander());
 								}

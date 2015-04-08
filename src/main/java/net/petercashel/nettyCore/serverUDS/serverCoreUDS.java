@@ -18,6 +18,7 @@ package net.petercashel.nettyCore.serverUDS;
 
 import java.io.File;
 import java.nio.file.Path;
+
 import net.petercashel.nettyCore.common.PacketRegistry;
 import io.netty.bootstrap.AbstractBootstrap;
 import io.netty.bootstrap.ServerBootstrap;
@@ -25,6 +26,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
+import io.netty.channel.epoll.EpollDomainSocketChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerDomainSocketChannel;
 import io.netty.channel.socket.SocketChannel;
@@ -59,9 +61,9 @@ public class serverCoreUDS {
 				public ServerBootstrap newInstance() {
 					return new ServerBootstrap().group(bossGroup, workerGroup)
 							.channel(EpollServerDomainSocketChannel.class)
-							.childHandler(new ChannelInitializer<SocketChannel>() { 
+							.childHandler(new ChannelInitializer<EpollDomainSocketChannel>() { 
 								@Override
-								public void initChannel(SocketChannel ch) throws Exception {
+								public void initChannel(EpollDomainSocketChannel ch) throws Exception {
 									ChannelPipeline p = ch.pipeline();
 									p.addLast("InboundOutboundServerHandler", new ServerUDSConnectionHandler());
 								}
