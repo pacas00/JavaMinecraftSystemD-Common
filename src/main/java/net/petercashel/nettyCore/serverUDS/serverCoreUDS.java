@@ -17,11 +17,14 @@ package net.petercashel.nettyCore.serverUDS;
 
 
 import java.io.File;
+import java.net.SocketAddress;
 import java.nio.file.Path;
+import java.util.HashMap;
 
 import net.petercashel.nettyCore.common.PacketRegistry;
 import io.netty.bootstrap.AbstractBootstrap;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -31,12 +34,16 @@ import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerDomainSocketChannel;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.unix.DomainSocketAddress;
+import io.netty.handler.timeout.ReadTimeoutHandler;
 
 public class serverCoreUDS {
 
 	static final int side = 0;
 	private static EpollEventLoopGroup bossGroup;
 	private static EpollEventLoopGroup workerGroup;
+	public static HashMap<Channel,Channel> clientConnectionMap;
+	public static boolean alive = false;
+	public static Channel c  = null;
 
 	// http://netty.io/wiki/user-guide-for-4.x.html
 	/**
@@ -50,9 +57,10 @@ public class serverCoreUDS {
 	}
 
 	public static void initializeServer(File socket) throws Exception {
+		clientConnectionMap = new HashMap<Channel,Channel>();
 		PacketRegistry.setupRegistry();
 		PacketRegistry.Side = side;
-
+		alive = true;
 		bossGroup = new EpollEventLoopGroup(); // (1)
 		workerGroup = new EpollEventLoopGroup();
 		try {
@@ -61,24 +69,24 @@ public class serverCoreUDS {
 				public ServerBootstrap newInstance() {
 					return new ServerBootstrap().group(bossGroup, workerGroup)
 							.channel(EpollServerDomainSocketChannel.class)
-							.childHandler(new ChannelInitializer<EpollServerDomainSocketChannel>() { 
+							.childHandler(new ChannelInitializer<EpollDomainSocketChannel>() { 
 								@Override
-								public void initChannel(EpollServerDomainSocketChannel ch) throws Exception {
+								public void initChannel(EpollDomainSocketChannel ch) throws Exception {
 									ChannelPipeline p = ch.pipeline();
+									p.addLast("readTimeoutHandler", new ReadTimeoutHandler(300));
 									p.addLast("InboundOutboundServerHandler", new ServerUDSConnectionHandler());
 								}
 							});
 				}
 			}.newInstance();
 
-			b.option(ChannelOption.SO_BACKLOG, 128); // (6)
-
 			// Bind and start to accept incoming connections.
 			ChannelFuture f = b.bind(newSocketAddress(socket)).sync(); // (7)
-			System.out.println("Server Core Initalised!");
+			System.out.println("Server UDS Initalised!");
 			// Wait until the server socket is closed.
 			// In this example, this does not happen, but you can do that to gracefully
 			// shut down your server.
+			c = f.channel();
 			f.channel().closeFuture().sync();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -103,6 +111,13 @@ public class serverCoreUDS {
 
 	public static void shutdown() {
 		try {
+			for (Channel c : clientConnectionMap.values()) {
+				try {
+					c.close().sync();
+				} catch (InterruptedException e) {
+				}
+				c = null;
+			}
 			workerGroup.shutdownGracefully();
 			bossGroup.shutdownGracefully();
 			PacketRegistry.shutdown();

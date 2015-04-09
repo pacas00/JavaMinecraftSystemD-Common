@@ -75,7 +75,6 @@ public class clientCoreUDS {
 				}
 			}.newInstance();
 
-
 			// Make the connection attempt.
 			ChannelFuture f = b.connect(newSocketAddress(socket)).sync();
 			f.awaitUninterruptibly(2000, TimeUnit.MILLISECONDS);
@@ -83,7 +82,7 @@ public class clientCoreUDS {
 			if (!f.isSuccess()) throw new RuntimeException("Failed to connect");
 			// if a wait option was selected and the connect did not fail,
 			// the Date can now be sent.
-			System.out.println("Client Core Connected!");
+			System.out.println("Client UDS Connected!");
 			connection = f.channel();
 			connClosed = false;
 			
