@@ -61,9 +61,9 @@ public class serverCoreUDS {
 				public ServerBootstrap newInstance() {
 					return new ServerBootstrap().group(bossGroup, workerGroup)
 							.channel(EpollServerDomainSocketChannel.class)
-							.childHandler(new ChannelInitializer<EpollDomainSocketChannel>() { 
+							.childHandler(new ChannelInitializer<EpollServerDomainSocketChannel>() { 
 								@Override
-								public void initChannel(EpollDomainSocketChannel ch) throws Exception {
+								public void initChannel(EpollServerDomainSocketChannel ch) throws Exception {
 									ChannelPipeline p = ch.pipeline();
 									p.addLast("InboundOutboundServerHandler", new ServerUDSConnectionHandler());
 								}
@@ -96,7 +96,9 @@ public class serverCoreUDS {
 
 	public static DomainSocketAddress newSocketAddress(File socket) {
 		socket.delete();
-		return new DomainSocketAddress(socket);
+		DomainSocketAddress sock = new DomainSocketAddress(socket);
+		System.out.println(sock.path());
+		return sock;
 	}
 
 	public static void shutdown() {

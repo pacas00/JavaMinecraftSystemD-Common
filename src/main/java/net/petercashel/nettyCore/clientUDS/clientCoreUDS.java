@@ -109,7 +109,6 @@ public class clientCoreUDS {
 	}
 
 	public static DomainSocketAddress newSocketAddress(File socket) {
-		socket.delete();
 		return new DomainSocketAddress(socket);
 	}
 
