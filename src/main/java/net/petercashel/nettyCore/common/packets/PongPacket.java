@@ -28,16 +28,17 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 
 public class PongPacket extends PacketBase implements IPacketBase {
-	//SYN-ACK
+	// SYN-ACK
 	public PongPacket() { // Server -> Client
 	}
+
 	public PongPacket(String Tok) {
 		tokenSalt = Tok;
 	}
 
 	public static int packetID = 1;
 	public String tokenSalt = "";
-	
+
 	@Override
 	public void pack() {
 		this.setPacket(this.getBlankPacket());
@@ -49,16 +50,37 @@ public class PongPacket extends PacketBase implements IPacketBase {
 	@Override
 	public void unpack() {
 		int i = this.packet.readInt();
-		tokenSalt = new String(this.packet.readBytes(i).array(), StandardCharsets.US_ASCII);
+		tokenSalt = new String(this.packet.readBytes(i).array(),
+				StandardCharsets.US_ASCII);
 	}
 
 	@Override
 	public void execute(ChannelHandlerContext ctx) {
-		if (tokenSalt == null) {ctx.close();  System.out.println("Client " + ctx.channel().remoteAddress().toString() + " failed to authenticate due to server error."); return;}
-		if (tokenSalt.isEmpty()) {ctx.close();  System.out.println("Client " + ctx.channel().remoteAddress().toString() + " failed to authenticate due to server error."); return;}
-		if (tokenSalt.equalsIgnoreCase("")) {ctx.close();  System.out.println("Client " + ctx.channel().remoteAddress().toString() + " failed to authenticate due to server error."); return;}
+		if (tokenSalt == null) {
+			ctx.close();
+			System.out.println("Client "
+					+ ctx.channel().remoteAddress().toString()
+					+ " failed to authenticate due to server error.");
+			return;
+		}
+		if (tokenSalt.isEmpty()) {
+			ctx.close();
+			System.out.println("Client "
+					+ ctx.channel().remoteAddress().toString()
+					+ " failed to authenticate due to server error.");
+			return;
+		}
+		if (tokenSalt.equalsIgnoreCase("")) {
+			ctx.close();
+			System.out.println("Client "
+					+ ctx.channel().remoteAddress().toString()
+					+ " failed to authenticate due to server error.");
+			return;
+		}
 		System.out.println("Sending Salted Token");
-		(PacketRegistry.pack(new PingPongPacket(clientCore.GeneratedSaltedToken(clientCore.token, tokenSalt)))).sendPacket(ctx);
+		(PacketRegistry.pack(new PingPongPacket(clientCore
+				.GeneratedSaltedToken(clientCore.token, tokenSalt))))
+				.sendPacket(ctx);
 	}
 
 	@Override
@@ -69,11 +91,12 @@ public class PongPacket extends PacketBase implements IPacketBase {
 
 	public ByteBuf getBlankPacket() {
 		// TODO Auto-generated method stub
-		ByteBuf b = Unpooled.buffer(Packet.packetBufSize).writeZero(Packet.packetBufSize);
+		ByteBuf b = Unpooled.buffer(Packet.packetBufSize).writeZero(
+				Packet.packetBufSize);
 		b.setIndex(0, 0);
 		return b;
 	}
-	
+
 	@Override
 	public ByteBuf getPacket() {
 		return this.packet;
@@ -82,7 +105,7 @@ public class PongPacket extends PacketBase implements IPacketBase {
 	@Override
 	public void setPacket(ByteBuf buf) {
 		this.packet = buf;
-		
+
 	}
-	
+
 }

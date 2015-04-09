@@ -57,52 +57,69 @@ public class clientCore {
 	private static NioEventLoopGroup group;
 
 	public static void reinitaliseConnection() throws Exception {
-		if (_port == 0) throw new Exception("Critical Error. Connection never initialized.");
+		if (_port == 0)
+			throw new Exception("Critical Error. Connection never initialized.");
 		initializeConnection(_host, _port);
 	}
 
 	/**
 	 * Initializes a Client Connection
 	 * 
-	 * @param addr - String address to connect to
-	 * @param port - int Port number to connect to
+	 * @param addr
+	 *            - String address to connect to
+	 * @param port
+	 *            - int Port number to connect to
 	 * @throws Exception
 	 */
-	public static void initializeConnection (final String addr, final int port) throws Exception {
+	public static void initializeConnection(final String addr, final int port)
+			throws Exception {
 		_host = addr;
 		_port = port;
 		PacketRegistry.setupRegistry();
 		PacketRegistry.Side = side;
-		if (UseSSL) SSLContextProvider.SetupSSL();
+		if (UseSSL)
+			SSLContextProvider.SetupSSL();
 
 		group = new NioEventLoopGroup();
 		try {
 			Bootstrap b = new Bootstrap();
-			b.group(group)
-			.channel(NioSocketChannel.class)
-			.handler(new ChannelInitializer<SocketChannel>() {
-				@Override
-				protected void initChannel(SocketChannel ch) throws Exception {
-					ChannelPipeline p = ch.pipeline();
-					p.addLast("readTimeoutHandler", new ReadTimeoutHandler(300));
-					if (UseSSL && !SSLContextProvider.selfSigned) p.addLast("ssl", getClientSSLHandler(addr, port));
-					if (UseSSL && SSLContextProvider.selfSigned) p.addLast("ssl", SSLContextProvider.getSelfClient().newHandler(ch.alloc(),addr, port));
-					p.addLast("InboundOutboundClientHandler", new ClientConnectionHander());
-				}
-			});
+			b.group(group).channel(NioSocketChannel.class)
+					.handler(new ChannelInitializer<SocketChannel>() {
+						@Override
+						protected void initChannel(SocketChannel ch)
+								throws Exception {
+							ChannelPipeline p = ch.pipeline();
+							p.addLast("readTimeoutHandler",
+									new ReadTimeoutHandler(300));
+							if (UseSSL && !SSLContextProvider.selfSigned)
+								p.addLast("ssl",
+										getClientSSLHandler(addr, port));
+							if (UseSSL && SSLContextProvider.selfSigned)
+								p.addLast(
+										"ssl",
+										SSLContextProvider.getSelfClient()
+												.newHandler(ch.alloc(), addr,
+														port));
+							p.addLast("InboundOutboundClientHandler",
+									new ClientConnectionHander());
+						}
+					});
 
 			// Make the connection attempt.
 			ChannelFuture f = b.connect(addr, port).sync();
 			f.awaitUninterruptibly(2000, TimeUnit.MILLISECONDS);
 
-			if (!f.isSuccess()) throw new RuntimeException("Failed to connect");
+			if (!f.isSuccess())
+				throw new RuntimeException("Failed to connect");
 			// if a wait option was selected and the connect did not fail,
 			// the Date can now be sent.
 			System.out.println("Client Core Connected!");
 			connection = f.channel();
 			connClosed = false;
 			// Initiate the Ping->Pong->PingPong Packet test.
-			PacketRegistry.pack(new PingPacket()).sendPacket(connection.pipeline().context("InboundOutboundClientHandler"));
+			PacketRegistry.pack(new PingPacket()).sendPacket(
+					connection.pipeline().context(
+							"InboundOutboundClientHandler"));
 
 			// Wait until the connection is closed.
 			f.channel().closeFuture().sync();
@@ -113,18 +130,22 @@ public class clientCore {
 		}
 	}
 
-	public static Channel getChannel() throws ConnectionShuttingDown, NullPointerException {
-		if (shuttingdown) throw new ConnectionShuttingDown();
+	public static Channel getChannel() throws ConnectionShuttingDown,
+			NullPointerException {
+		if (shuttingdown)
+			throw new ConnectionShuttingDown();
 		return connection;
 	}
 
-	public static SslHandler getClientSSLHandler(final String addr, final int port) {
-		final SSLEngine sslEngine = SSLContextProvider.get().createSSLEngine(addr, port);
+	public static SslHandler getClientSSLHandler(final String addr,
+			final int port) {
+		final SSLEngine sslEngine = SSLContextProvider.get().createSSLEngine(
+				addr, port);
 		sslEngine.setUseClientMode(true);
 		final SslHandler sslHandler = new SslHandler(sslEngine);
 		return sslHandler;
 	}
-	
+
 	public static String GeneratedSaltedToken(String TOKEN, String TokenSalt) {
 		MessageDigest md = null;
 		try {
@@ -138,21 +159,23 @@ public class clientCore {
 		byte[] hash = md.digest();
 		StringBuffer hexString = new StringBuffer();
 
-        for (int i = 0; i < hash.length; i++) {
-            String hex = Integer.toHexString(0xff & hash[i]);
-            if(hex.length() == 1) hexString.append('0');
-            hexString.append(hex);
-        }
-        
+		for (int i = 0; i < hash.length; i++) {
+			String hex = Integer.toHexString(0xff & hash[i]);
+			if (hex.length() == 1)
+				hexString.append('0');
+			hexString.append(hex);
+		}
+
 		return hexString.toString();
 	}
 
-	public static void shutdown() throws InterruptedException, ConnectionShuttingDown {
+	public static void shutdown() throws InterruptedException,
+			ConnectionShuttingDown {
 		try {
 			getChannel().close().await(20, TimeUnit.SECONDS);
 			group.shutdownGracefully().await(30, TimeUnit.SECONDS);
 			PacketRegistry.shutdown();
 		} catch (NullPointerException e) {
-		}		
+		}
 	}
 }

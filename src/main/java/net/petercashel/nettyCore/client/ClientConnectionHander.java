@@ -32,7 +32,8 @@ public class ClientConnectionHander extends ChannelHandlerAdapter {
 
 	@Override
 	public void handlerAdded(ChannelHandlerContext ctx) {
-		buf = ctx.alloc().buffer(Packet.packetBufSize + Packet.packetHeaderSize); // (1)
+		buf = ctx.alloc()
+				.buffer(Packet.packetBufSize + Packet.packetHeaderSize); // (1)
 	}
 
 	@Override
@@ -42,14 +43,16 @@ public class ClientConnectionHander extends ChannelHandlerAdapter {
 	}
 
 	@Override
-	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+	public void channelRead(ChannelHandlerContext ctx, Object msg)
+			throws Exception {
 		ByteBuf m = (ByteBuf) msg;
 		buf.writeBytes(m); // (2)
 		m.release();
 		if (buf.readableBytes() >= (Packet.packetBufSize + Packet.packetHeaderSize)) { // (3)
 			int side = buf.readInt();
-			Packet p = new Packet(buf.readInt(), buf.readBytes(Packet.packetBufSize));
-			PacketRegistry.unpackExecute(p, ctx); 
+			Packet p = new Packet(buf.readInt(),
+					buf.readBytes(Packet.packetBufSize));
+			PacketRegistry.unpackExecute(p, ctx);
 		}
 	}
 
@@ -57,7 +60,8 @@ public class ClientConnectionHander extends ChannelHandlerAdapter {
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
 			throws Exception {
 		if (cause instanceof ReadTimeoutException) {
-			System.out.println("Connection Timed Out: " + ctx.channel().remoteAddress().toString());
+			System.out.println("Connection Timed Out: "
+					+ ctx.channel().remoteAddress().toString());
 			clientCore.shuttingdown = true;
 			try {
 				ctx.close().sync();

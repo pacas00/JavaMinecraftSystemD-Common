@@ -21,10 +21,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-
-
-
-
 //import net.petercashel.jmsDd.command.commandServer;
 import net.petercashel.nettyCore.common.PacketRegistry;
 import net.petercashel.nettyCore.common.packetCore.IPacketBase;
@@ -38,14 +34,14 @@ import io.netty.channel.ChannelHandlerContext;
 public class CMDInPacket extends PacketBase implements IPacketBase {
 	public CMDInPacket() {
 	}
-	
+
 	public CMDInPacket(String s) {
 		this.s = s;
 	}
 
 	public static int packetID = 20;
 	public String s;
-	
+
 	@Override
 	public void pack() {
 		this.setPacket(this.getBlankPacket());
@@ -60,27 +56,30 @@ public class CMDInPacket extends PacketBase implements IPacketBase {
 		} catch (UnsupportedEncodingException e) {
 			this.packet.writeBytes(s.getBytes());
 		}
-		
+
 	}
 
 	@Override
 	public void unpack() {
 		int strlength = this.packet.readInt();
 		int length = this.packet.readInt();
-		s = new String(this.packet.readBytes(length).array());		
+		s = new String(this.packet.readBytes(length).array());
 	}
 
 	@Override
 	public void execute(ChannelHandlerContext ctx) {
 		try {
-			Class<?> clazz = Class.forName("net.petercashel.jmsDd.command.commandServer");
+			Class<?> clazz = Class
+					.forName("net.petercashel.jmsDd.command.commandServer");
 			Method m = clazz.getMethod("processCommand", String.class);
 			m.invoke(null, s);
-		} catch (ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+		} catch (ClassNotFoundException | NoSuchMethodException
+				| SecurityException | IllegalAccessException
+				| IllegalArgumentException | InvocationTargetException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		//commandServer.processCommand(s);		
+		// commandServer.processCommand(s);
 	}
 
 	@Override
@@ -91,11 +90,12 @@ public class CMDInPacket extends PacketBase implements IPacketBase {
 
 	public ByteBuf getBlankPacket() {
 		// TODO Auto-generated method stub
-		ByteBuf b = Unpooled.buffer(Packet.packetBufSize).writeZero(Packet.packetBufSize);
+		ByteBuf b = Unpooled.buffer(Packet.packetBufSize).writeZero(
+				Packet.packetBufSize);
 		b.setIndex(0, 0);
 		return b;
 	}
-	
+
 	@Override
 	public ByteBuf getPacket() {
 		return this.packet;
@@ -104,7 +104,7 @@ public class CMDInPacket extends PacketBase implements IPacketBase {
 	@Override
 	public void setPacket(ByteBuf buf) {
 		this.packet = buf;
-		
+
 	}
-	
+
 }

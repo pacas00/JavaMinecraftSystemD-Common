@@ -21,12 +21,14 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 
 public class PacketBase {
-	
+
 	public static int packetID = -1;
 	public ByteBuf packet;
-	
+
 	public void sendPacket(ChannelHandlerContext ctx) {
-		ByteBuf b = ctx.alloc().buffer(Packet.packetBufSize + Packet.packetHeaderSize, Packet.packetBufSize + Packet.packetHeaderSize);
+		ByteBuf b = ctx.alloc().buffer(
+				Packet.packetBufSize + Packet.packetHeaderSize,
+				Packet.packetBufSize + Packet.packetHeaderSize);
 		b.writeInt(PacketRegistry.GetOtherSide());
 		b.writeInt(packetID);
 		b.writeBytes(packet);
@@ -36,18 +38,20 @@ public class PacketBase {
 			System.out.println("INVALID PACKET! DISCARDING!");
 		} else {
 			b.writeZero(b.writableBytes());
-			
+
 			if (b.readableBytes() == (Packet.packetBufSize + Packet.packetHeaderSize)) {
 				ctx.writeAndFlush(b);
 			} else if (b.readableBytes() > (Packet.packetBufSize + Packet.packetHeaderSize)) {
 				System.out.println("INVALID PACKET! DISCARDING!");
 			}
 		}
-		
+
 	}
-	
+
 	public void sendPacket(Channel c) {
-		ByteBuf b = c.alloc().buffer(Packet.packetBufSize + Packet.packetHeaderSize, Packet.packetBufSize + Packet.packetHeaderSize);
+		ByteBuf b = c.alloc().buffer(
+				Packet.packetBufSize + Packet.packetHeaderSize,
+				Packet.packetBufSize + Packet.packetHeaderSize);
 		b.writeInt(PacketRegistry.GetOtherSide());
 		b.writeInt(packetID);
 		b.writeBytes(packet);
@@ -57,13 +61,13 @@ public class PacketBase {
 			System.out.println("INVALID PACKET! DISCARDING!");
 		} else {
 			b.writeZero(b.writableBytes());
-			
+
 			if (b.readableBytes() == (Packet.packetBufSize + Packet.packetHeaderSize)) {
 				c.writeAndFlush(b);
 			} else if (b.readableBytes() > (Packet.packetBufSize + Packet.packetHeaderSize)) {
 				System.out.println("INVALID PACKET! DISCARDING!");
 			}
 		}
-		
+
 	}
 }

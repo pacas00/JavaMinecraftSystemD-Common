@@ -31,14 +31,16 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 
 public class PingPacket extends PacketBase implements IPacketBase {
-	//SYN
+	// SYN
 	public PingPacket() { // Client -> Server
 	}
-	final public static int ProtocolVersion = 1;  
+
+	final public static int ProtocolVersion = 1;
 	public static int packetID = 0;
 	public String Username = "";
-	public int ProtoVer = 0; //Used server side to store clients value of ProtocolVersion
-	
+	public int ProtoVer = 0; // Used server side to store clients value of
+								// ProtocolVersion
+
 	@Override
 	public void pack() {
 		this.setPacket(this.getBlankPacket());
@@ -47,47 +49,90 @@ public class PingPacket extends PacketBase implements IPacketBase {
 		this.packet.writeInt(ProtocolVersion);
 		this.packet.writeInt(Username.length());
 		this.packet.writeBytes(b);
-		
+
 	}
 
 	@Override
 	public void unpack() {
 		this.ProtoVer = this.packet.readInt();
 		int i = this.packet.readInt();
-		Username = new String(this.packet.readBytes(i).array(), StandardCharsets.US_ASCII);		
+		Username = new String(this.packet.readBytes(i).array(),
+				StandardCharsets.US_ASCII);
 	}
 
 	@Override
 	public void execute(ChannelHandlerContext ctx) {
 		if (serverCore.DoAuth) {
-		System.out.println("Client " + ctx.channel().remoteAddress().toString() + " requesting to authenticate.");
-		if (this.ProtoVer != ProtocolVersion) {ctx.close(); System.out.println("Client " + ctx.channel().remoteAddress().toString() + " failed to authenticate."); return;}
-		if (Username == null) {ctx.close();  System.out.println("Client " + ctx.channel().remoteAddress().toString() + " failed to authenticate."); return;}
-		if (Username.isEmpty()) {ctx.close();  System.out.println("Client " + ctx.channel().remoteAddress().toString() + " failed to authenticate."); return;}
-		if (Username.equalsIgnoreCase("")) {ctx.close();  System.out.println("Client " + ctx.channel().remoteAddress().toString() + " failed to authenticate."); return;}
-		IAuthDataSystem auth = null;
-		try {
-			Class cls = Class.forName("net.petercashel.jmsDd.auth.AuthSystem");
-			Field f = cls.getField("backend");
-			auth = (IAuthDataSystem) f.get(null);
-		} catch (Exception e) {
-			e.printStackTrace();
-			ctx.close();  System.out.println("Client " + ctx.channel().remoteAddress().toString() + " failed to authenticate."); return;
-		}
-		if (!auth.HasUser(Username)) {ctx.close();  System.out.println("Client " + ctx.channel().remoteAddress().toString() + " failed to authenticate."); return;}
-		serverCore.AuthTmpUserMap.put(ctx.channel().remoteAddress().toString(), Username);
-		(PacketRegistry.pack(new PongPacket(auth.GetTokenSalt(Username)))).sendPacket(ctx);
-		} else {
-			System.out.println("Sending history to " + ctx.channel().remoteAddress().toString());
+			System.out.println("Client "
+					+ ctx.channel().remoteAddress().toString()
+					+ " requesting to authenticate.");
+			if (this.ProtoVer != ProtocolVersion) {
+				ctx.close();
+				System.out.println("Client "
+						+ ctx.channel().remoteAddress().toString()
+						+ " failed to authenticate.");
+				return;
+			}
+			if (Username == null) {
+				ctx.close();
+				System.out.println("Client "
+						+ ctx.channel().remoteAddress().toString()
+						+ " failed to authenticate.");
+				return;
+			}
+			if (Username.isEmpty()) {
+				ctx.close();
+				System.out.println("Client "
+						+ ctx.channel().remoteAddress().toString()
+						+ " failed to authenticate.");
+				return;
+			}
+			if (Username.equalsIgnoreCase("")) {
+				ctx.close();
+				System.out.println("Client "
+						+ ctx.channel().remoteAddress().toString()
+						+ " failed to authenticate.");
+				return;
+			}
+			IAuthDataSystem auth = null;
 			try {
-				Class cls = Class.forName("net.petercashel.jmsDd.command.commandServer");
-				Method m = cls.getMethod("sendHistory", ChannelHandlerContext.class);
-				m.invoke(null, ctx);			
+				Class cls = Class
+						.forName("net.petercashel.jmsDd.auth.AuthSystem");
+				Field f = cls.getField("backend");
+				auth = (IAuthDataSystem) f.get(null);
+			} catch (Exception e) {
+				e.printStackTrace();
+				ctx.close();
+				System.out.println("Client "
+						+ ctx.channel().remoteAddress().toString()
+						+ " failed to authenticate.");
+				return;
+			}
+			if (!auth.HasUser(Username)) {
+				ctx.close();
+				System.out.println("Client "
+						+ ctx.channel().remoteAddress().toString()
+						+ " failed to authenticate.");
+				return;
+			}
+			serverCore.AuthTmpUserMap.put(ctx.channel().remoteAddress()
+					.toString(), Username);
+			(PacketRegistry.pack(new PongPacket(auth.GetTokenSalt(Username))))
+					.sendPacket(ctx);
+		} else {
+			System.out.println("Sending history to "
+					+ ctx.channel().remoteAddress().toString());
+			try {
+				Class cls = Class
+						.forName("net.petercashel.jmsDd.command.commandServer");
+				Method m = cls.getMethod("sendHistory",
+						ChannelHandlerContext.class);
+				m.invoke(null, ctx);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
-		
+
 	}
 
 	@Override
@@ -98,11 +143,12 @@ public class PingPacket extends PacketBase implements IPacketBase {
 
 	public ByteBuf getBlankPacket() {
 		// TODO Auto-generated method stub
-		ByteBuf b = Unpooled.buffer(Packet.packetBufSize).writeZero(Packet.packetBufSize);
+		ByteBuf b = Unpooled.buffer(Packet.packetBufSize).writeZero(
+				Packet.packetBufSize);
 		b.setIndex(0, 0);
 		return b;
 	}
-	
+
 	@Override
 	public ByteBuf getPacket() {
 		return this.packet;
@@ -111,7 +157,7 @@ public class PingPacket extends PacketBase implements IPacketBase {
 	@Override
 	public void setPacket(ByteBuf buf) {
 		this.packet = buf;
-		
+
 	}
-	
+
 }

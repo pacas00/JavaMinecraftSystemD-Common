@@ -25,25 +25,29 @@ import net.petercashel.nettyCore.common.packetCore.Packet;
 
 public class PacketRegistry {
 
-	private static volatile HashMap<Integer,Class<? extends IPacketBase>> packets;
+	private static volatile HashMap<Integer, Class<? extends IPacketBase>> packets;
 
-	public static synchronized int registerPacket(Class<? extends IPacketBase> clazz ) {
+	public static synchronized int registerPacket(
+			Class<? extends IPacketBase> clazz) {
 		int id = (packets.size() + 1);
 		packets.put(id, clazz);
 		return id;
 	}
 
-	protected static synchronized int registerPacketWithID(int id, Class<? extends IPacketBase> clazz ) {
+	protected static synchronized int registerPacketWithID(int id,
+			Class<? extends IPacketBase> clazz) {
 		packets.put(id, clazz);
 		return id;
 	}
 
 	private static boolean setup = false;
 	private static threadManager threadMan;
+
 	public static void setupRegistry() {
-		if (setup) return;
+		if (setup)
+			return;
 		setup = true;
-		packets = new HashMap<Integer,Class<? extends IPacketBase>>();
+		packets = new HashMap<Integer, Class<? extends IPacketBase>>();
 		CorePackets.registerCorePackets();
 		threadMan = new threadManager();
 	}
@@ -62,19 +66,21 @@ public class PacketRegistry {
 		}
 		packet.setPacket(p.packet);
 		packet.unpack();
-		
+
 		return packet;
 	}
-	
-	public static Packet pack (IPacketBase p) {
+
+	public static Packet pack(IPacketBase p) {
 		p.pack();
 		return new Packet(p.getPacketID(), p.getPacket());
 	}
 
-	public static void unpackExecute(final Packet p, final ChannelHandlerContext ctx) {
-		Runnable r = new Runnable() { 
-		    public void run() {
-		    	Class<? extends IPacketBase> packetClass = packets.get(p.packetID);
+	public static void unpackExecute(final Packet p,
+			final ChannelHandlerContext ctx) {
+		Runnable r = new Runnable() {
+			public void run() {
+				Class<? extends IPacketBase> packetClass = packets
+						.get(p.packetID);
 				IPacketBase packet = null;
 				try {
 					packet = packetClass.newInstance();
@@ -88,16 +94,19 @@ public class PacketRegistry {
 				packet.setPacket(p.packet);
 				packet.unpack();
 				packet.execute(ctx);
-		    }
-		  };
-		  threadMan.addRunnable(r);
-		
+			}
+		};
+		threadMan.addRunnable(r);
+
 	}
 
 	public static int Side = -1;
+
 	public static int GetOtherSide() {
-		if (Side == 0) return 1;
-		if (Side == 1) return 0;
+		if (Side == 0)
+			return 1;
+		if (Side == 1)
+			return 0;
 		return 2;
 	}
 
@@ -105,9 +114,7 @@ public class PacketRegistry {
 		threadMan.shutdown();
 		packets = null;
 		setup = false;
-		
+
 	}
-
-
 
 }

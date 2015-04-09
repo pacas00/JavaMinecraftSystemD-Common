@@ -15,7 +15,6 @@
  *******************************************************************************/
 package net.petercashel.nettyCore.serverUDS;
 
-
 import java.io.File;
 import java.net.SocketAddress;
 import java.nio.file.Path;
@@ -41,15 +40,16 @@ public class serverCoreUDS {
 	static final int side = 0;
 	private static EpollEventLoopGroup bossGroup;
 	private static EpollEventLoopGroup workerGroup;
-	public static HashMap<Channel,Channel> clientConnectionMap;
+	public static HashMap<Channel, Channel> clientConnectionMap;
 	public static boolean alive = false;
-	public static Channel c  = null;
+	public static Channel c = null;
 
 	// http://netty.io/wiki/user-guide-for-4.x.html
 	/**
-	 * Initializes the Server listerning socket 
+	 * Initializes the Server listerning socket
 	 *
-	 * @param port - Int port to bind to
+	 * @param port
+	 *            - Int port to bind to
 	 * @throws Exception
 	 */
 	public static void initializeServer(Path socket) throws Exception {
@@ -57,7 +57,7 @@ public class serverCoreUDS {
 	}
 
 	public static void initializeServer(File socket) throws Exception {
-		clientConnectionMap = new HashMap<Channel,Channel>();
+		clientConnectionMap = new HashMap<Channel, Channel>();
 		PacketRegistry.setupRegistry();
 		PacketRegistry.Side = side;
 		alive = true;
@@ -67,16 +67,23 @@ public class serverCoreUDS {
 			ServerBootstrap b = new BootstrapFactory<ServerBootstrap>() {
 				@Override
 				public ServerBootstrap newInstance() {
-					return new ServerBootstrap().group(bossGroup, workerGroup)
+					return new ServerBootstrap()
+							.group(bossGroup, workerGroup)
 							.channel(EpollServerDomainSocketChannel.class)
-							.childHandler(new ChannelInitializer<EpollDomainSocketChannel>() { 
-								@Override
-								public void initChannel(EpollDomainSocketChannel ch) throws Exception {
-									ChannelPipeline p = ch.pipeline();
-									p.addLast("readTimeoutHandler", new ReadTimeoutHandler(300));
-									p.addLast("InboundOutboundServerHandler", new ServerUDSConnectionHandler());
-								}
-							});
+							.childHandler(
+									new ChannelInitializer<EpollDomainSocketChannel>() {
+										@Override
+										public void initChannel(
+												EpollDomainSocketChannel ch)
+												throws Exception {
+											ChannelPipeline p = ch.pipeline();
+											p.addLast("readTimeoutHandler",
+													new ReadTimeoutHandler(300));
+											p.addLast(
+													"InboundOutboundServerHandler",
+													new ServerUDSConnectionHandler());
+										}
+									});
 				}
 			}.newInstance();
 
@@ -84,7 +91,8 @@ public class serverCoreUDS {
 			ChannelFuture f = b.bind(newSocketAddress(socket)).sync(); // (7)
 			System.out.println("Server UDS Initalised!");
 			// Wait until the server socket is closed.
-			// In this example, this does not happen, but you can do that to gracefully
+			// In this example, this does not happen, but you can do that to
+			// gracefully
 			// shut down your server.
 			c = f.channel();
 			f.channel().closeFuture().sync();

@@ -67,27 +67,32 @@ public class HexCodeGenerator {
 			System.out.println(UNICODEDate);
 		}
 
-		BigInteger BigIntCode_1 = ((BigIntUNICODEName.multiply(BigIntUNICODETime)).multiply(BigIntUNICODEDate));
+		BigInteger BigIntCode_1 = ((BigIntUNICODEName
+				.multiply(BigIntUNICODETime)).multiply(BigIntUNICODEDate));
 
 		if (HexCodeGenerator.debug) {
 			System.out.println("BigIntCode_1");
 			System.out.println(BigIntCode_1);
 		}
-		BigInteger BigIntDivider = BigIntCode_1.divide(new BigInteger(String.valueOf(64)));
+		BigInteger BigIntDivider = BigIntCode_1.divide(new BigInteger(String
+				.valueOf(64)));
 		if (HexCodeGenerator.debug) {
 			System.out.println("BigIntDivider");
-			System.out.println(BigIntDivider);			
+			System.out.println(BigIntDivider);
 		}
 		String BigIntDividedString = BigIntDivider.toString();
-		Random random = new Random(Long.parseLong(BigIntDividedString.substring(4, 20)));
+		Random random = new Random(Long.parseLong(BigIntDividedString
+				.substring(4, 20)));
 		BigInteger BigIntRandom_1 = new BigInteger(150, random);
 		if (HexCodeGenerator.debug) {
 			System.out.println("BigIntRandom_1");
 			System.out.println(BigIntRandom_1);
 		}
 
-		BigInteger BigIntPreFinal = (BigIntCode_1.multiply(BigIntRandom_1)).divide(BigIntDivider);
-		BigInteger BigIntFinal = (BigIntPreFinal.multiply(BigIntRandom_1)).multiply(BigIntCode_1);
+		BigInteger BigIntPreFinal = (BigIntCode_1.multiply(BigIntRandom_1))
+				.divide(BigIntDivider);
+		BigInteger BigIntFinal = (BigIntPreFinal.multiply(BigIntRandom_1))
+				.multiply(BigIntCode_1);
 
 		if (HexCodeGenerator.debug) {
 			System.out.println("BigIntFinal");
@@ -100,7 +105,7 @@ public class HexCodeGenerator {
 		int remains = 0;
 
 		whole = BigIntFinalLength / 4;
-		String Hex = "0";		
+		String Hex = "0";
 
 		if (HexCodeGenerator.debug) {
 			System.out.println("HexStart");
@@ -108,12 +113,12 @@ public class HexCodeGenerator {
 			System.out.println(remains);
 		}
 
-
-		for(int i = 0; i < whole; i++)
-		{
+		for (int i = 0; i < whole; i++) {
 			try {
-				if (Hex.length() < ((size+1)*2)) {
-					String str = Integer.toHexString(Integer.parseInt(BigIntFinal.toString().substring(i * 4, (i * 4) + 4)));
+				if (Hex.length() < ((size + 1) * 2)) {
+					String str = Integer.toHexString(Integer
+							.parseInt(BigIntFinal.toString().substring(i * 4,
+									(i * 4) + 4)));
 					Hex = Hex + str;
 				}
 			} catch (NumberFormatException e) {
@@ -122,21 +127,20 @@ public class HexCodeGenerator {
 			}
 		}
 		if (Hex.length() > size) {
-			Hex = Hex.substring(32, size + 32);				
+			Hex = Hex.substring(32, size + 32);
 		}
 		return Hex;
 	}
 
 	private static String toUNICODE(String input) {
 		String output = "";
-		for(int i = 0; i < input.length(); i++)
-		{
+		for (int i = 0; i < input.length(); i++) {
 			try {
 				char ch = input.charAt(i);
 				int cp = String.valueOf(ch).codePointAt(0);
 				output = output + cp;
 			} catch (NullPointerException e) {
-				//just incase it throws when the character is blank
+				// just incase it throws when the character is blank
 			}
 		}
 		return output;

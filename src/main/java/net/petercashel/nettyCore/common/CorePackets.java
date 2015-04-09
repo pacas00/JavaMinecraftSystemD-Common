@@ -26,22 +26,27 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
 public class CorePackets {
-	
+
 	static short PingPacketID = 0;
 	static short PongPacketID = 1;
 	static short PingPongPacketID = 2;
-	
+
 	public static void registerCorePackets() {
 		PacketRegistry.registerPacketWithID(PingPacketID, PingPacket.class);
 		PacketRegistry.registerPacketWithID(PongPacketID, PongPacket.class);
-		PacketRegistry.registerPacketWithID(PingPongPacketID, PingPongPacket.class);
-		
-		PacketRegistry.registerPacketWithID(IOOutPacket.packetID, IOOutPacket.class);
-		PacketRegistry.registerPacketWithID(IOInPacket.packetID, IOInPacket.class);
-		
-		PacketRegistry.registerPacketWithID(CMDInPacket.packetID, CMDInPacket.class);
-		
-		PacketRegistry.registerPacketWithID(GetHistoryPacket.packetID, GetHistoryPacket.class);
-		
+		PacketRegistry.registerPacketWithID(PingPongPacketID,
+				PingPongPacket.class);
+
+		PacketRegistry.registerPacketWithID(IOOutPacket.packetID,
+				IOOutPacket.class);
+		PacketRegistry.registerPacketWithID(IOInPacket.packetID,
+				IOInPacket.class);
+
+		PacketRegistry.registerPacketWithID(CMDInPacket.packetID,
+				CMDInPacket.class);
+
+		PacketRegistry.registerPacketWithID(GetHistoryPacket.packetID,
+				GetHistoryPacket.class);
+
 	}
 }

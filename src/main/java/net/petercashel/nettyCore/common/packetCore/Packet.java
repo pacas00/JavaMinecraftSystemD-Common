@@ -19,12 +19,12 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 
-public class Packet extends PacketBase implements IPacketBase{
-	
+public class Packet extends PacketBase implements IPacketBase {
+
 	// packetID is 2 bytes, so total packet size is packetBufSize + 4 bytes.
 	public static final int packetBufSize = 65536;
 	public static final int packetHeaderSize = 8;
-	
+
 	public Packet(int i, ByteBuf buf) {
 		this.packetID = i;
 		this.packet = buf;
@@ -45,24 +45,24 @@ public class Packet extends PacketBase implements IPacketBase{
 	@Override
 	public void pack() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void unpack() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void execute(ChannelHandlerContext ctx) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void setPacket(ByteBuf buf) {
 		this.packet = buf;
-		
+
 	}
 }

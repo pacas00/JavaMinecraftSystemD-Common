@@ -15,7 +15,6 @@
  *******************************************************************************/
 package net.petercashel.nettyCore.server;
 
-
 import java.net.SocketAddress;
 import java.util.HashMap;
 
@@ -40,49 +39,60 @@ public class serverCore {
 	public static boolean DoAuth = true;
 	public static boolean UseSSL = true;
 	static final int side = 0;
-	public static HashMap<SocketAddress,Channel> clientConnectionMap;
-	public static HashMap<String,String> AuthTmpUserMap;
+	public static HashMap<SocketAddress, Channel> clientConnectionMap;
+	public static HashMap<String, String> AuthTmpUserMap;
 	private static NioEventLoopGroup bossGroup;
 	private static NioEventLoopGroup workerGroup;
+
 	// http://netty.io/wiki/user-guide-for-4.x.html
 	/**
-	 * Initializes the Server listerning socket 
+	 * Initializes the Server listerning socket
 	 *
-	 * @param port - Int port to bind to
+	 * @param port
+	 *            - Int port to bind to
 	 * @throws Exception
 	 */
 	public static void initializeServer(int port) throws Exception {
-		clientConnectionMap = new HashMap<SocketAddress,Channel>();
-		AuthTmpUserMap = new HashMap<String,String>();
+		clientConnectionMap = new HashMap<SocketAddress, Channel>();
+		AuthTmpUserMap = new HashMap<String, String>();
 		PacketRegistry.setupRegistry();
 		PacketRegistry.Side = side;
-		if (UseSSL) SSLContextProvider.SetupSSL();
+		if (UseSSL)
+			SSLContextProvider.SetupSSL();
 
 		bossGroup = new NioEventLoopGroup(); // (1)
 		workerGroup = new NioEventLoopGroup();
 		try {
 			ServerBootstrap b = new ServerBootstrap(); // (2)
 			b.group(bossGroup, workerGroup)
-			.channel(NioServerSocketChannel.class) // (3)
-			.childHandler(new ChannelInitializer<SocketChannel>() { // (4)
-				@Override
-				public void initChannel(SocketChannel ch) throws Exception {
-					ChannelPipeline p = ch.pipeline();
-					p.addLast("readTimeoutHandler", new ReadTimeoutHandler(300));
-					if (UseSSL && !SSLContextProvider.selfSigned) p.addLast("ssl", getSSLHandler());
-					if (UseSSL && SSLContextProvider.selfSigned) p.addLast("ssl", SSLContextProvider.getSelfServer().newHandler(ch.alloc()));
-					p.addLast("InboundOutboundServerHandler", new ServerConnectionHandler());
-				}
-			})
-			.option(ChannelOption.SO_BACKLOG, 128)          // (5)
-			.childOption(ChannelOption.TCP_NODELAY, true); // (6)
-
+					.channel(NioServerSocketChannel.class) // (3)
+					.childHandler(new ChannelInitializer<SocketChannel>() { // (4)
+								@Override
+								public void initChannel(SocketChannel ch)
+										throws Exception {
+									ChannelPipeline p = ch.pipeline();
+									p.addLast("readTimeoutHandler",
+											new ReadTimeoutHandler(300));
+									if (UseSSL
+											&& !SSLContextProvider.selfSigned)
+										p.addLast("ssl", getSSLHandler());
+									if (UseSSL && SSLContextProvider.selfSigned)
+										p.addLast("ssl",
+												SSLContextProvider
+														.getSelfServer()
+														.newHandler(ch.alloc()));
+									p.addLast("InboundOutboundServerHandler",
+											new ServerConnectionHandler());
+								}
+							}).option(ChannelOption.SO_BACKLOG, 128) // (5)
+					.childOption(ChannelOption.TCP_NODELAY, true); // (6)
 
 			// Bind and start to accept incoming connections.
 			ChannelFuture f = b.bind("0.0.0.0", port).sync(); // (7)
 			System.out.println("Server Core Initalised!");
 			// Wait until the server socket is closed.
-			// In this example, this does not happen, but you can do that to gracefully
+			// In this example, this does not happen, but you can do that to
+			// gracefully
 			// shut down your server.
 			f.channel().closeFuture().sync();
 		} catch (InterruptedException e) {

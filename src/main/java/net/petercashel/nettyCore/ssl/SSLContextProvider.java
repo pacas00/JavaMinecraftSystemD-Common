@@ -39,7 +39,6 @@ import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.netty.util.internal.logging.Log4JLoggerFactory;
 
-
 public class SSLContextProvider {
 
 	public static boolean useExternalSSL = false;
@@ -59,7 +58,8 @@ public class SSLContextProvider {
 		if (useExternalSSL) {
 			try {
 				try {
-					pkcs12Base64 = Files.readAllBytes(FileSystems.getDefault().getPath(pathToSSLCert));
+					pkcs12Base64 = Files.readAllBytes(FileSystems.getDefault()
+							.getPath(pathToSSLCert));
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -68,7 +68,9 @@ public class SSLContextProvider {
 				selfSigned = true;
 			}
 		} else {
-			InputStream in = SSLContextProvider.class.getClass().getResourceAsStream("/net/petercashel/nettyCore/ssl/SSLCERT.p12");
+			InputStream in = SSLContextProvider.class.getClass()
+					.getResourceAsStream(
+							"/net/petercashel/nettyCore/ssl/SSLCERT.p12");
 			try {
 				int buffersize = 0;
 				try {
@@ -80,16 +82,16 @@ public class SSLContextProvider {
 				}
 				byte[] buffer = new byte[buffersize];
 				try {
-					if ( in.read(buffer) == -1 ) {
-					}        
+					if (in.read(buffer) == -1) {
+					}
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				} finally { 
+				} finally {
 					try {
-						if ( in != null ) 
+						if (in != null)
 							in.close();
-					} catch ( IOException e) {
+					} catch (IOException e) {
 					}
 
 				}
@@ -99,17 +101,18 @@ public class SSLContextProvider {
 			}
 		}
 	}
+
 	public static SslContext getSelfClient() {
 		SslContext sslCtx = null;
 		try {
-			sslCtx = SslContext.newClientContext(InsecureTrustManagerFactory.INSTANCE);
+			sslCtx = SslContext
+					.newClientContext(InsecureTrustManagerFactory.INSTANCE);
 		} catch (SSLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return sslCtx;
 	}
-
 
 	public static SslContext getSelfServer() {
 		SelfSignedCertificate ssc = null;
@@ -121,7 +124,8 @@ public class SSLContextProvider {
 		}
 		SslContext sslCtx = null;
 		try {
-			sslCtx = SslContext.newServerContext(ssc.certificate(), ssc.privateKey());
+			sslCtx = SslContext.newServerContext(ssc.certificate(),
+					ssc.privateKey());
 		} catch (SSLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -130,25 +134,29 @@ public class SSLContextProvider {
 	}
 
 	public static SSLContext get() {
-		if(sslContext==null) {
+		if (sslContext == null) {
 			synchronized (SSLContextProvider.class) {
-				if(sslContext==null) {
+				if (sslContext == null) {
 					try {
 						sslContext = SSLContext.getInstance("TLSv1.2");
 						KeyStore ks = KeyStore.getInstance("PKCS12");
-						ks.load(new ByteArrayInputStream((pkcs12Base64)), SSLCertSecret.toCharArray());
-						KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+						ks.load(new ByteArrayInputStream((pkcs12Base64)),
+								SSLCertSecret.toCharArray());
+						KeyManagerFactory kmf = KeyManagerFactory
+								.getInstance("SunX509");
 						kmf.init(ks, SSLCertSecret.toCharArray());
 
-						TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("PKIX");
+						TrustManagerFactory trustManagerFactory = TrustManagerFactory
+								.getInstance("PKIX");
 						trustManagerFactory.init(ks);
 
-						//Random r = new Random();
-						//int iseed = r.nextInt();
-						//while (iseed < 0) iseed = r.nextInt();
-						//byte[] seed = r.generateSeed(iseed);
+						// Random r = new Random();
+						// int iseed = r.nextInt();
+						// while (iseed < 0) iseed = r.nextInt();
+						// byte[] seed = r.generateSeed(iseed);
 						SecureRandom sr = new SecureRandom();
-						sslContext.init(kmf.getKeyManagers(), trustManagerFactory.getTrustManagers(), sr);
+						sslContext.init(kmf.getKeyManagers(),
+								trustManagerFactory.getTrustManagers(), sr);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}

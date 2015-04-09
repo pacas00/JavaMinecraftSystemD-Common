@@ -18,7 +18,7 @@ package net.petercashel.nettyCore.common.exceptions;
 import io.netty.channel.Channel;
 
 public class ConnectionShuttingDown extends Exception {
-	
+
 	/**
 	 * 
 	 */

@@ -31,8 +31,6 @@ import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.unix.DomainSocketAddress;
 
-
-
 public class clientCoreUDS {
 	static Channel connection;
 	static final int side = 1;
@@ -46,16 +44,18 @@ public class clientCoreUDS {
 	/**
 	 * Initializes a Client Connection
 	 * 
-	 * @param addr - String address to connect to
-	 * @param port - int Port number to connect to
+	 * @param addr
+	 *            - String address to connect to
+	 * @param port
+	 *            - int Port number to connect to
 	 * @throws Exception
 	 */
 
-	public static void initializeConnection (Path socket) throws Exception {
+	public static void initializeConnection(Path socket) throws Exception {
 		initializeConnection(socket.toFile());
 	}
 
-	public static void initializeConnection (File socket) throws Exception {
+	public static void initializeConnection(File socket) throws Exception {
 		PacketRegistry.setupRegistry();
 		PacketRegistry.Side = side;
 
@@ -64,14 +64,21 @@ public class clientCoreUDS {
 			Bootstrap b = new BootstrapFactory<Bootstrap>() {
 				@Override
 				public Bootstrap newInstance() {
-					return new Bootstrap().group(group).channel(EpollDomainSocketChannel.class)
-							.handler(new ChannelInitializer<EpollDomainSocketChannel>() {
-								@Override
-								protected void initChannel(EpollDomainSocketChannel ch) throws Exception {
-									ChannelPipeline p = ch.pipeline();
-									p.addLast("InboundOutboundClientHandler", new ClientUDSConnectionHander());
-								}
-							});
+					return new Bootstrap()
+							.group(group)
+							.channel(EpollDomainSocketChannel.class)
+							.handler(
+									new ChannelInitializer<EpollDomainSocketChannel>() {
+										@Override
+										protected void initChannel(
+												EpollDomainSocketChannel ch)
+												throws Exception {
+											ChannelPipeline p = ch.pipeline();
+											p.addLast(
+													"InboundOutboundClientHandler",
+													new ClientUDSConnectionHander());
+										}
+									});
 				}
 			}.newInstance();
 
@@ -79,15 +86,18 @@ public class clientCoreUDS {
 			ChannelFuture f = b.connect(newSocketAddress(socket)).sync();
 			f.awaitUninterruptibly(2000, TimeUnit.MILLISECONDS);
 
-			if (!f.isSuccess()) throw new RuntimeException("Failed to connect");
+			if (!f.isSuccess())
+				throw new RuntimeException("Failed to connect");
 			// if a wait option was selected and the connect did not fail,
 			// the Date can now be sent.
 			System.out.println("Client UDS Connected!");
 			connection = f.channel();
 			connClosed = false;
-			
+
 			// Send GetHistoryPacket
-			PacketRegistry.pack(new GetHistoryPacket()).sendPacket(connection.pipeline().context("InboundOutboundClientHandler"));
+			PacketRegistry.pack(new GetHistoryPacket()).sendPacket(
+					connection.pipeline().context(
+							"InboundOutboundClientHandler"));
 
 			// Wait until the connection is closed.
 			f.channel().closeFuture().sync();
@@ -98,8 +108,10 @@ public class clientCoreUDS {
 		}
 	}
 
-	public static Channel getChannel() throws ConnectionShuttingDown, NullPointerException {
-		if (shuttingdown) throw new ConnectionShuttingDown();
+	public static Channel getChannel() throws ConnectionShuttingDown,
+			NullPointerException {
+		if (shuttingdown)
+			throw new ConnectionShuttingDown();
 		return connection;
 	}
 
@@ -111,13 +123,13 @@ public class clientCoreUDS {
 		return new DomainSocketAddress(socket);
 	}
 
-
-	public static void shutdown() throws InterruptedException, ConnectionShuttingDown {
+	public static void shutdown() throws InterruptedException,
+			ConnectionShuttingDown {
 		try {
 			getChannel().close().await(20, TimeUnit.SECONDS);
 			group.shutdownGracefully().await(30, TimeUnit.SECONDS);
 			PacketRegistry.shutdown();
 		} catch (NullPointerException e) {
-		}	
+		}
 	}
 }

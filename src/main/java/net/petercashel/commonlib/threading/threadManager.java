@@ -26,15 +26,17 @@ public class threadManager {
 	private int processors = Runtime.getRuntime().availableProcessors();
 	public ExecutorService exec = Executors.newFixedThreadPool(processors);
 	public static threadManager threadMan;
-	
+
 	public static threadManager getInstance() {
-		if (threadMan == null) threadMan = new threadManager();
+		if (threadMan == null)
+			threadMan = new threadManager();
 		return threadMan;
 	}
+
 	public threadManager() {
-		
+
 	}
-	
+
 	public Future addRunnable(threadRunnable r) {
 		return exec.submit(r);
 	}
@@ -47,7 +49,7 @@ public class threadManager {
 	public Future addCallable(Callable r) {
 		return exec.submit(r);
 	}
-	
+
 	public void shutdown() {
 		exec.shutdown();
 	}

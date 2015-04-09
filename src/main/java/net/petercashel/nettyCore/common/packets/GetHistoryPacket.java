@@ -29,30 +29,33 @@ public class GetHistoryPacket extends PacketBase implements IPacketBase {
 	}
 
 	public static int packetID = 30;
-	
+
 	@Override
 	public void pack() {
 		this.setPacket(this.getPacket());
-		
+
 	}
 
 	@Override
 	public void unpack() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void execute(ChannelHandlerContext ctx) {
-		System.out.println("Sending history to " + ctx.channel().remoteAddress().toString());
+		System.out.println("Sending history to "
+				+ ctx.channel().remoteAddress().toString());
 		try {
-			Class cls = Class.forName("net.petercashel.jmsDd.command.commandServer");
-			Method m = cls.getMethod("sendHistory", ChannelHandlerContext.class);
-			m.invoke(null, ctx);			
+			Class cls = Class
+					.forName("net.petercashel.jmsDd.command.commandServer");
+			Method m = cls
+					.getMethod("sendHistory", ChannelHandlerContext.class);
+			m.invoke(null, ctx);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 	}
 
 	@Override
@@ -64,7 +67,8 @@ public class GetHistoryPacket extends PacketBase implements IPacketBase {
 	@Override
 	public ByteBuf getPacket() {
 		// TODO Auto-generated method stub
-		ByteBuf b = Unpooled.buffer(Packet.packetBufSize).writeZero(Packet.packetBufSize);
+		ByteBuf b = Unpooled.buffer(Packet.packetBufSize).writeZero(
+				Packet.packetBufSize);
 		b.setIndex(0, 0);
 		return b;
 	}
@@ -72,7 +76,7 @@ public class GetHistoryPacket extends PacketBase implements IPacketBase {
 	@Override
 	public void setPacket(ByteBuf buf) {
 		this.packet = buf;
-		
+
 	}
-	
+
 }
