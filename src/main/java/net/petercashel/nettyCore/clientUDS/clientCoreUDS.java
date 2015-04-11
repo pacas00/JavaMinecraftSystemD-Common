@@ -96,8 +96,7 @@ public class clientCoreUDS {
 
 			// Send GetHistoryPacket
 			PacketRegistry.pack(new GetHistoryPacket()).sendPacket(
-					connection.pipeline().context(
-							"InboundOutboundClientHandler"));
+					connection);
 
 			// Wait until the connection is closed.
 			f.channel().closeFuture().sync();
