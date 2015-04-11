@@ -1,5 +1,6 @@
 # JavaMinecraftSystemD-Common
 
+[![build status](http://ci.petercashel.net/projects/4/status.png?ref=master)](http://ci.petercashel.net/projects/4?ref=master)
 This project contains the common code form the Java Minecraft SystemD daemon (JMSDd) and client (JMSDc).
 
 
