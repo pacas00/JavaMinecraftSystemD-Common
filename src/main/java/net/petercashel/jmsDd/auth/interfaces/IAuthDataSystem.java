@@ -17,6 +17,8 @@ package net.petercashel.jmsDd.auth.interfaces;
 
 public interface IAuthDataSystem {
 
+	public static enum permissionLevels {NOACCESS, USER, TRUSTEDUSER, MODERATOR, ADMINISTRATOR};
+	
 	public void init();
 
 	public void save();

@@ -39,7 +39,7 @@ public class serverCore {
 	public static boolean DoAuth = true;
 	public static boolean UseSSL = true;
 	static final int side = 0;
-	public static HashMap<SocketAddress, Channel> clientConnectionMap;
+	public static HashMap<SocketAddress, ChannelUserHolder> clientConnectionMap;
 	public static HashMap<String, String> AuthTmpUserMap;
 	private static NioEventLoopGroup bossGroup;
 	private static NioEventLoopGroup workerGroup;
@@ -53,7 +53,7 @@ public class serverCore {
 	 * @throws Exception
 	 */
 	public static void initializeServer(int port) throws Exception {
-		clientConnectionMap = new HashMap<SocketAddress, Channel>();
+		clientConnectionMap = new HashMap<SocketAddress, ChannelUserHolder>();
 		AuthTmpUserMap = new HashMap<String, String>();
 		PacketRegistry.setupRegistry();
 		PacketRegistry.Side = side;
@@ -116,9 +116,9 @@ public class serverCore {
 
 	public static void shutdown() {
 		try {
-			for (Channel c : clientConnectionMap.values()) {
+			for (ChannelUserHolder c : clientConnectionMap.values()) {
 				try {
-					c.close().sync();
+					c.c.close().sync();
 				} catch (InterruptedException e) {
 				}
 				c = null;

@@ -71,6 +71,8 @@ public class PingPacket extends PacketBase implements IPacketBase {
 				System.out.println("Client "
 						+ ctx.channel().remoteAddress().toString()
 						+ " failed to authenticate.");
+				serverCore.clientConnectionMap.remove(ctx.channel()
+						.remoteAddress());
 				return;
 			}
 			if (Username == null) {
@@ -78,6 +80,8 @@ public class PingPacket extends PacketBase implements IPacketBase {
 				System.out.println("Client "
 						+ ctx.channel().remoteAddress().toString()
 						+ " failed to authenticate.");
+				serverCore.clientConnectionMap.remove(ctx.channel()
+						.remoteAddress());
 				return;
 			}
 			if (Username.isEmpty()) {
@@ -85,6 +89,8 @@ public class PingPacket extends PacketBase implements IPacketBase {
 				System.out.println("Client "
 						+ ctx.channel().remoteAddress().toString()
 						+ " failed to authenticate.");
+				serverCore.clientConnectionMap.remove(ctx.channel()
+						.remoteAddress());
 				return;
 			}
 			if (Username.equalsIgnoreCase("")) {
@@ -92,6 +98,8 @@ public class PingPacket extends PacketBase implements IPacketBase {
 				System.out.println("Client "
 						+ ctx.channel().remoteAddress().toString()
 						+ " failed to authenticate.");
+				serverCore.clientConnectionMap.remove(ctx.channel()
+						.remoteAddress());
 				return;
 			}
 			IAuthDataSystem auth = null;
@@ -106,6 +114,8 @@ public class PingPacket extends PacketBase implements IPacketBase {
 				System.out.println("Client "
 						+ ctx.channel().remoteAddress().toString()
 						+ " failed to authenticate.");
+				serverCore.clientConnectionMap.remove(ctx.channel()
+						.remoteAddress());
 				return;
 			}
 			if (!auth.HasUser(Username)) {
@@ -113,6 +123,8 @@ public class PingPacket extends PacketBase implements IPacketBase {
 				System.out.println("Client "
 						+ ctx.channel().remoteAddress().toString()
 						+ " failed to authenticate.");
+				serverCore.clientConnectionMap.remove(ctx.channel()
+						.remoteAddress());
 				return;
 			}
 			serverCore.AuthTmpUserMap.put(ctx.channel().remoteAddress()

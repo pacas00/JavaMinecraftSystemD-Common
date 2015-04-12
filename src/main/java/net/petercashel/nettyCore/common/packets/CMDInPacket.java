@@ -20,6 +20,8 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.SocketAddress;
+
 
 //import net.petercashel.jmsDd.command.commandServer;
 import net.petercashel.nettyCore.common.PacketRegistry;
@@ -28,6 +30,7 @@ import net.petercashel.nettyCore.common.packetCore.Packet;
 import net.petercashel.nettyCore.common.packetCore.PacketBase;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 
@@ -71,8 +74,8 @@ public class CMDInPacket extends PacketBase implements IPacketBase {
 		try {
 			Class<?> clazz = Class
 					.forName("net.petercashel.jmsDd.command.commandServer");
-			Method m = clazz.getMethod("processCommand", String.class);
-			m.invoke(null, s);
+			Method m = clazz.getMethod("processCommand", String.class, Channel.class);
+			m.invoke(null, s, ctx.channel());
 		} catch (ClassNotFoundException | NoSuchMethodException
 				| SecurityException | IllegalAccessException
 				| IllegalArgumentException | InvocationTargetException e) {

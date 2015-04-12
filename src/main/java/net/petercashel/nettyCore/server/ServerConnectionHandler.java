@@ -52,8 +52,10 @@ public class ServerConnectionHandler extends ChannelHandlerAdapter {
 		try {
 			if (!(serverCore.clientConnectionMap.containsKey(ctx.channel()
 					.remoteAddress()))) {
+				ChannelUserHolder chUser = (new ChannelUserHolder());
+				chUser.c = ctx.channel();
 				serverCore.clientConnectionMap.put(ctx.channel()
-						.remoteAddress(), ctx.channel());
+						.remoteAddress(), chUser);
 			}
 		} catch (NullPointerException e) {
 			// Delibrately null on shutdown.
@@ -80,11 +82,12 @@ public class ServerConnectionHandler extends ChannelHandlerAdapter {
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause)
 			throws Exception {
+		serverCore.clientConnectionMap.remove(ctx.channel().remoteAddress()
+				.toString());
 		if (cause instanceof ReadTimeoutException) {
 			System.out.println("Connection Timed Out: "
 					+ ctx.channel().remoteAddress().toString());
-			serverCore.clientConnectionMap.remove(ctx.channel().remoteAddress()
-					.toString());
+			
 		} else {
 			super.exceptionCaught(ctx, cause);
 		}

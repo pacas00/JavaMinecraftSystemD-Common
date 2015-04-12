@@ -23,6 +23,7 @@ import net.petercashel.jmsDd.auth.interfaces.IAuthDataSystem;
 import net.petercashel.nettyCore.common.packetCore.IPacketBase;
 import net.petercashel.nettyCore.common.packetCore.Packet;
 import net.petercashel.nettyCore.common.packetCore.PacketBase;
+import net.petercashel.nettyCore.server.ChannelUserHolder;
 import net.petercashel.nettyCore.server.serverCore;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -62,6 +63,8 @@ public class PingPongPacket extends PacketBase implements IPacketBase {
 			System.out.println("Client "
 					+ ctx.channel().remoteAddress().toString()
 					+ " failed to authenticate.");
+			serverCore.clientConnectionMap.remove(ctx.channel()
+					.remoteAddress());
 			return;
 		}
 		if (tokenWithSalt.isEmpty()) {
@@ -69,6 +72,8 @@ public class PingPongPacket extends PacketBase implements IPacketBase {
 			System.out.println("Client "
 					+ ctx.channel().remoteAddress().toString()
 					+ " failed to authenticate.");
+			serverCore.clientConnectionMap.remove(ctx.channel()
+					.remoteAddress());
 			return;
 		}
 		if (tokenWithSalt.equalsIgnoreCase("")) {
@@ -76,6 +81,8 @@ public class PingPongPacket extends PacketBase implements IPacketBase {
 			System.out.println("Client "
 					+ ctx.channel().remoteAddress().toString()
 					+ " failed to authenticate.");
+			serverCore.clientConnectionMap.remove(ctx.channel()
+					.remoteAddress());
 			return;
 		}
 		IAuthDataSystem auth = null;
@@ -89,6 +96,8 @@ public class PingPongPacket extends PacketBase implements IPacketBase {
 			System.out.println("Client "
 					+ ctx.channel().remoteAddress().toString()
 					+ " failed to authenticate.");
+			serverCore.clientConnectionMap.remove(ctx.channel()
+					.remoteAddress());
 			return;
 		}
 		String Username = serverCore.AuthTmpUserMap.get(ctx.channel()
@@ -98,11 +107,22 @@ public class PingPongPacket extends PacketBase implements IPacketBase {
 			System.out.println("Client "
 					+ ctx.channel().remoteAddress().toString()
 					+ " failed to authenticate.");
+			serverCore.clientConnectionMap.remove(ctx.channel()
+					.remoteAddress());
 			return;
 		}
 
 		System.out.println("Client " + ctx.channel().remoteAddress().toString()
 				+ " authenticated successfully.");
+		//Quick cleanup and set username in mappings
+		serverCore.AuthTmpUserMap.remove(ctx.channel()
+				.remoteAddress().toString());
+		ChannelUserHolder chUser = serverCore.clientConnectionMap.get(ctx.channel()
+				.remoteAddress());
+		chUser.user = Username;
+		serverCore.clientConnectionMap.put(ctx.channel()
+				.remoteAddress(), chUser);
+		
 		System.out.println("Sending history to "
 				+ ctx.channel().remoteAddress().toString());
 		try {
