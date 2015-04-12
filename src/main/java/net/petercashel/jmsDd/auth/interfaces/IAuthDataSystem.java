@@ -42,5 +42,9 @@ public interface IAuthDataSystem {
 	public void ResetToken(String user);
 
 	public void ResetTokenSalt(String user);
+	
+	
+	public int GetPermissionLevel(String user);
+	public void SetPermissionLevel(String user, int level);
 
 }
