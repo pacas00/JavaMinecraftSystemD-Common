@@ -1,0 +1,7 @@
+<isproject version="1" revision="1" type="Maven" >
+    <guid>{F7B18449-ADB3-4EDD-A608-C4C894AC57C1}</guid>
+    <buildfile>pom.xml</buildfile>
+    <writeable
+        buildfile="0"
+    />
+</isproject>
