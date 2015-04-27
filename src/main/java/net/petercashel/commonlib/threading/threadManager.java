@@ -52,5 +52,11 @@ public class threadManager {
 
 	public void shutdown() {
 		exec.shutdown();
+		try {
+			Thread.sleep(2000);
+		}
+		catch (InterruptedException e) {
+		}
+		exec.shutdownNow();
 	}
 }
